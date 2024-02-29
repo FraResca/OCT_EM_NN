@@ -1,0 +1,3 @@
+1) L'immagine è in bianco e nero, ma viene da un .tif RGB, quanti canali?
+2) Incoerenza nel numero di strati conv nell'articolo di Kim et al
+3) Chiedi dell'assegno
