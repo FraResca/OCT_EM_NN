@@ -1,6 +1,6 @@
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.vgg16 import preprocess_input
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.preprocessing import LabelEncoder, StandardScaler, OrdinalEncoder
 import os
 import numpy as np
 import pandas as pd
@@ -14,18 +14,16 @@ def data_prep():
     X = data[:, 1:-1]  # all rows, all columns except first and last
     y = data[:, -1]  # all rows, last column
 
-    le = LabelEncoder()
+    enc = OrdinalEncoder()
 
-    X[:, 0] = le.fit_transform(X[:, 0])
-    X[:, 1] = le.fit_transform(X[:, 1])
+    X[:, 0] = enc.fit_transform(X[:, 0].reshape(-1, 1)).ravel() 
+    X[:, 1] = enc.fit_transform(X[:, 1].reshape(-1, 1)).ravel()
 
     X = X.astype(float)
 
     scaler = StandardScaler()
     X_norm = scaler.fit_transform(X)
-
-    y = y.reshape(-1, 1)
-    y_norm = scaler.fit_transform(y)
+    y_norm = scaler.fit_transform(y.reshape(-1, 1))
 
     images = []
 
@@ -47,7 +45,7 @@ def data_prep():
 
     return [images, X_norm], y_norm
 
-
+data_prep()
 
 '''
 # Preprocessing dell'immagine
