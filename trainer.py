@@ -1,5 +1,6 @@
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import Model, load_model
+from scipy.ndimage import zoom
 from models import hybnet
 from predata import data_prep
 import matplotlib.pyplot as plt
@@ -39,7 +40,7 @@ def visualize_attention():
 
     attention_map_2d = np.sum(attention_map, axis=-1)
 
-    attention_map_resized = np.array([np.resize(img, images_test[0].shape[:2]) for img in attention_map_2d])
+    attention_map_resized = np.array([zoom(img, (images_test[0].shape[0]/img.shape[0], images_test[0].shape[1]/img.shape[1])) for img in attention_map_2d])
 
     attention_map_resized = attention_map_resized.astype('float32') / attention_map_resized.max()
 
@@ -58,5 +59,8 @@ def visualize_attention():
         ax.imshow(att_map, cmap='jet', alpha=0.5)
 
     plt.savefig('attention_maps.png')
-
     plt.show()
+
+if __name__ == '__main__':
+    train_hybrid()
+    visualize_attention()

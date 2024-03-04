@@ -60,5 +60,3 @@ def corr_mat():
     print(df)
     print('\nMatrice di correlazione:')
     print(df.corr())
-
-corr_mat()

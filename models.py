@@ -1,6 +1,6 @@
 from tensorflow.keras.applications.vgg16 import VGG16
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Multiply, BatchNormalization, Conv2D, LocallyConnected2D, GlobalAveragePooling2D, Lambda, Dense, Concatenate, Flatten
+from tensorflow.keras.layers import Input, Multiply, BatchNormalization, Conv2D, LocallyConnected2D, GlobalAveragePooling2D, Lambda, Dense, Concatenate, Conv2DTranspose
 
 def convnet():
     # Definizione strati rete
@@ -10,7 +10,9 @@ def convnet():
     batchnorm = BatchNormalization()
     conv1 = Conv2D(256, (3, 3), activation='relu', padding='valid', strides=(2, 2))
     conv2 = Conv2D(64, (3, 3), activation='relu', padding='valid', strides=(2, 2))
+    '''
     conv3 = Conv2D(16, (3, 3), activation='relu', padding='valid', strides=(2, 2))
+    '''
     loccon = LocallyConnected2D(1, (3, 3), activation='relu', padding='valid')
     conv4 = Conv2D(512, (3, 3), activation='relu', padding='same')
     globavpool = GlobalAveragePooling2D()
@@ -22,7 +24,7 @@ def convnet():
     conv = batchnorm(conv)
     conv = conv1(conv)
     conv = conv2(conv)
-    conv = conv3(conv)
+    #conv = conv3(conv)
     conv = loccon(conv)
     conv = conv4(conv)
     postcnn = conv
