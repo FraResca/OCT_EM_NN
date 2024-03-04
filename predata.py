@@ -1,5 +1,6 @@
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.vgg16 import preprocess_input
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler, OrdinalEncoder
 import os
 import numpy as np
@@ -43,23 +44,21 @@ def data_prep():
     # Convert the list of images to a numpy array
     images = np.concatenate(images)
 
-    return [images, X_norm], y_norm
+    X_train, X_test, y_train, y_test = train_test_split(X_norm, y_norm, test_size=0.2, random_state=42)
+    images_train, images_test, _, _ = train_test_split(images, y_norm, test_size=0.2, random_state=42)
 
-data_prep()
+    return X_train, X_test, images_train, images_test, y_train, y_test
 
-'''
-# Preprocessing dell'immagine
-img = image.load_img('02_0_cropped.tif', target_size=(512,512))
+def corr_mat():
+    df = pd.read_excel('XLsquartabile.xlsx', engine='openpyxl')
+    df = df.drop(columns=['ID'])
 
-#print(img.size)
+    df['Occhio'] = df['Occhio'].map({'OD': 0, 'OS': 1})
+    df['Sesso'] = df['Sesso'].map({'F': 0, 'M': 1})
+    
+    print('\nDataFrame originale:')
+    print(df)
+    print('\nMatrice di correlazione:')
+    print(df.corr())
 
-img_array = image.img_to_array(img)
-img_array = np.expand_dims(img_array, axis=0)
-img_array = preprocess_input(img_array)
-
-#print(img_array.shape)
-
-# Estrazione features
-
-#features = model.predict(img_array)
-'''
+corr_mat()

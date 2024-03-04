@@ -10,7 +10,7 @@ def convnet():
     batchnorm = BatchNormalization()
     conv1 = Conv2D(256, (3, 3), activation='relu', padding='valid', strides=(2, 2))
     conv2 = Conv2D(64, (3, 3), activation='relu', padding='valid', strides=(2, 2))
-    #conv3 = Conv2D(16, (3, 3), activation='relu', padding='same')
+    conv3 = Conv2D(16, (3, 3), activation='relu', padding='valid', strides=(2, 2))
     loccon = LocallyConnected2D(1, (3, 3), activation='relu', padding='valid')
     conv4 = Conv2D(512, (3, 3), activation='relu', padding='same')
     globavpool = GlobalAveragePooling2D()
@@ -22,7 +22,7 @@ def convnet():
     conv = batchnorm(conv)
     conv = conv1(conv)
     conv = conv2(conv)
-    #conv = conv3(conv)
+    conv = conv3(conv)
     conv = loccon(conv)
     conv = conv4(conv)
     postcnn = conv
@@ -36,7 +36,7 @@ def convnet():
     return conv_model
 
 def densenet():
-    input_dense = Input(shape=(11,))
+    input_dense = Input(shape=(9,))
     dense = Dense(14, activation='relu')(input_dense)
     dense = Dense(6, activation='sigmoid')(dense)
     denseput = dense
