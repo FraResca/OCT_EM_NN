@@ -13,4 +13,4 @@
 module load anaconda/3
 module load cuda/11.4
  
-conda run python3 trainer.py
+conda run python3 trainer.py 10 yes yes
