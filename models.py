@@ -38,20 +38,21 @@ def convnet():
     return conv_model
 
 def densenet():
-    input_dense = Input(shape=(9,))
-    dense = Dense(14, activation='relu')(input_dense)
-    dense = Dense(6, activation='sigmoid')(dense)
+    input_dense = Input(shape=(14,))
+    dense = Dense(16, activation='relu')(input_dense)
+    dense = Dense(4, activation='sigmoid')(dense)
     denseput = dense
 
     dense_model = Model(input_dense, denseput)
     return dense_model
 
-def hybnet():
+def hybnet_multi():
     conv_model = convnet()
     dense_model = densenet()
     concat = Concatenate()([conv_model.output, dense_model.output])
     dense_fin = Dense(1024, activation='relu')(concat)
-    output = Dense(1, activation='sigmoid')(dense_fin)
+    output = Dense(4, name='output')(dense_fin)
 
     hybrid_model = Model(inputs=[conv_model.input, dense_model.input], outputs=output)
+
     return hybrid_model
