@@ -3,8 +3,8 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Multiply, BatchNormalization, Conv2D, LocallyConnected2D, GlobalAveragePooling2D, Lambda, Dense, Concatenate, Conv2DTranspose
 
 def convnet():
-    # Definizione strati rete
-    prevgg16 = VGG16(weights='imagenet', include_top=False, input_shape=(512, 512, 3))
+    # Definizione strati rete convoluzionale
+    prevgg16 = VGG16(weights='vgg16.h5', include_top=False, input_shape=(512, 512, 3))
     for layer in prevgg16.layers:
         layer.trainable = False
     batchnorm = BatchNormalization()

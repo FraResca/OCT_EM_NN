@@ -9,6 +9,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 
+def download_vgg16():
+    from tensorflow.keras.applications.vgg16 import VGG16
+    model = VGG16(weights='imagenet', include_top=False, input_shape=(512, 512, 3))
+    model.save('vgg16.h5')
+
 def custom_loss(y_true, y_pred):
     binary_loss = BinaryCrossentropy()(y_true[:,:2], y_pred[:,:2])
     mse_loss = MeanSquaredError()(y_true[:,2:], y_pred[:,2:])
@@ -83,6 +88,7 @@ if __name__ == '__main__':
         aug = True
     else:
         aug = False
+    download_vgg16()
     train_hybrid_multi(int(sys.argv[1]), aug)
     if sys.argv[3] == 'yes':
         visualize_attention()
