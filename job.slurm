@@ -13,4 +13,6 @@
 module load anaconda/3
 module load cuda/11.4
 
+pip install -r requirements.txt
+
 conda run python3 trainer.py 10 yes yes
