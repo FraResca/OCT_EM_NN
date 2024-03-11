@@ -15,4 +15,4 @@ module load cuda/11.4
 
 pip install -r requirements.txt
 
-conda run python3 trainer.py 10 yes yes
+conda run python3 trainer.py 20 yes yes

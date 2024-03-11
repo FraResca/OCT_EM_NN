@@ -47,7 +47,7 @@ def custom_loss(y_true, y_pred):
 
 def train_hybrid_multi(n_epochs, aug):
     hybrid_model = hybnet_multi()
-    hybrid_model.summary()
+    # hybrid_model.summary()
 
     X, images, Y = data_prep_multi()
     X, images, Y = shuffle(X, images, Y, random_state=42)
@@ -63,7 +63,7 @@ def train_hybrid_multi(n_epochs, aug):
 
 def train_hybrid_multi_imbalance(n_epochs, aug):
     hybrid_model = hybnet_multi()
-    hybrid_model.summary()
+    # hybrid_model.summary()
 
     X, images, Y = data_prep_multi()
     X, images, Y = shuffle(X, images, Y, random_state=42)
@@ -90,6 +90,7 @@ def visualize_attention(modelname):
     X, images, Y = data_prep_multi()
     _, X_test, _, images_test, _, _ = splits(X, images, Y)
 
+
     hybrid_model = load_model(modelname, custom_objects={'custom_loss': custom_loss, 'custom_loss_imbalance': custom_loss_imbalance})
 
     multiply_layer_index = -1
@@ -112,12 +113,14 @@ def visualize_attention(modelname):
     attention_map_resized = attention_map_resized.astype('float32') / attention_map_resized.max()
 
     num_images = len(images_test)
+    '''
     num_cols = 2
     num_rows = num_images // num_cols
 
     if num_images % num_cols:
         num_rows += 1
 
+    
     fig = plt.figure(figsize=(10, num_rows * 5))
 
     for i, (img, att_map) in enumerate(zip(images_test, attention_map_resized), start=1):
@@ -125,8 +128,17 @@ def visualize_attention(modelname):
         ax.imshow(img, cmap='gray')
         ax.imshow(att_map, cmap='jet', alpha=0.5)
 
-    plt.savefig(f'attention_{modelname}.png')
-    plt.show()
+    plt.savefig(f'attention_{modelname}_{i}.png')
+    '''
+    
+    for i in range(num_images):
+        fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+        ax[0].imshow(images_test[i], cmap='gray')
+        ax[1].imshow(images_test[i], cmap='gray')
+        ax[1].imshow(attention_map_resized[i], cmap='jet', alpha=0.5)
+        plt.savefig(f'attention_maps/attention_{modelname}_{i}.png')
+    
+    #plt.show()
 
 if __name__ == '__main__':
     if len(sys.argv) != 4:
