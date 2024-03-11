@@ -20,10 +20,13 @@ def data_prep_multi():
 
     data = df.to_numpy()
 
-    ids = data[:, 0]  # all rows, first column
+    ids = data[:, 0]  # first column
 
-    X = data[:, 1:-4]  # all rows, all columns except first and last 3
-    Y = data[:, -4:]  # all rows, last 3 columns
+    X = data[:, 1:-4]  # all columns except first and last 4
+    Y = data[:, -4:]  # last 4 columns
+
+    #print(X)
+    #print(Y)
 
     labenc = LabelEncoder()
     X[:, 0] = labenc.fit_transform(X[:, 0])
@@ -58,6 +61,9 @@ def data_prep_multi():
         images.append(img_array)
 
     images = np.concatenate(images)
+
+    #print(X_norm)
+    #print(Y_norm)
 
     return X_norm, images, Y_norm
 
