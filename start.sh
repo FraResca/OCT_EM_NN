@@ -1,3 +1,4 @@
 #!/bin/bash
 
-sbatch job.slurm
+sbatch job_imb.slurm
+sbatch job_bal.slurm

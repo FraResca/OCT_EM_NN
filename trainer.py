@@ -113,24 +113,7 @@ def visualize_attention(modelname):
     attention_map_resized = attention_map_resized.astype('float32') / attention_map_resized.max()
 
     num_images = len(images_test)
-    '''
-    num_cols = 2
-    num_rows = num_images // num_cols
 
-    if num_images % num_cols:
-        num_rows += 1
-
-    
-    fig = plt.figure(figsize=(10, num_rows * 5))
-
-    for i, (img, att_map) in enumerate(zip(images_test, attention_map_resized), start=1):
-        ax = fig.add_subplot(num_rows, num_cols, i)
-        ax.imshow(img, cmap='gray')
-        ax.imshow(att_map, cmap='jet', alpha=0.5)
-
-    plt.savefig(f'attention_{modelname}_{i}.png')
-    '''
-    
     for i in range(num_images):
         fig, ax = plt.subplots(1, 2, figsize=(10, 5))
         ax[0].imshow(images_test[i], cmap='gray')
@@ -139,7 +122,8 @@ def visualize_attention(modelname):
         plt.savefig(f'attention_maps/attention_{modelname}_{i}.png')
     
     #plt.show()
-
+        
+'''
 if __name__ == '__main__':
     if len(sys.argv) != 4:
         print('Usage: python trainer.py <number of epochs> <augmented yes/no> <vis yes/no>')
@@ -159,3 +143,4 @@ if __name__ == '__main__':
     if sys.argv[3] == 'yes':
         visualize_attention('hybrid_model.h5')
         visualize_attention('hybrid_model_imbalance.h5')
+'''
