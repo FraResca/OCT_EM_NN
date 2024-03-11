@@ -74,7 +74,7 @@ def train_hybrid_multi_imbalance(n_epochs, aug):
 
     lr = 0.001
     hybrid_model.compile(optimizer=Adam(learning_rate=lr), loss=custom_loss_imbalance, metrics=['mean_absolute_error'])
-    hybrid_model.fit([images_train, X_train], Y_train, epochs=n_epochs, batch_size=2)
+    hybrid_model.fit([images_train, X_train], Y_train, epochs=n_epochs, batch_size=1)
     hybrid_model.save('hybrid_model_imbalance.h5')
 
 
