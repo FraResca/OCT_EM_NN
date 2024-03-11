@@ -12,5 +12,7 @@
  
 module load anaconda/3
 module load cuda/11.4
- 
+
+export TMPDIR=/tmp
+
 conda run python3 trainer.py 10 yes yes
