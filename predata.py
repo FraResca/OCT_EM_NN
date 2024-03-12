@@ -7,6 +7,9 @@ from sklearn.utils import shuffle
 import os
 import numpy as np
 import pandas as pd
+from imblearn.over_sampling import SMOTE
+from sklearn.neighbors import NearestNeighbors
+
 
 def corr_mat(X, Y):
     df = pd.DataFrame(np.concatenate([X, Y], axis=1))
@@ -25,8 +28,8 @@ def data_prep_multi():
     X = data[:, 1:-4]  # all columns except first and last 4
     Y = data[:, -4:]  # last 4 columns
 
-    #print(X)
-    #print(Y)
+    # print(X)
+    # print(Y)
 
     labenc = LabelEncoder()
     X[:, 0] = labenc.fit_transform(X[:, 0])

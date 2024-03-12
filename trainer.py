@@ -5,7 +5,7 @@ from tensorflow.keras.models import Model, load_model
 from sklearn.utils import shuffle
 from scipy.ndimage import zoom
 from models import hybnet_multi
-from predata import data_prep_multi, splits, data_aug
+from predata import *
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
@@ -89,7 +89,7 @@ def eval_hybrid_multi(modelname):
 def visualize_attention(modelname):
     X, images, Y = data_prep_multi()
     _, X_test, _, images_test, _, _ = splits(X, images, Y)
-
+    X, images, Y = data_aug(X, images, Y)
 
     hybrid_model = load_model(modelname, custom_objects={'custom_loss': custom_loss, 'custom_loss_imbalance': custom_loss_imbalance})
 
