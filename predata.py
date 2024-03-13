@@ -7,8 +7,6 @@ from sklearn.utils import shuffle
 import os
 import numpy as np
 import pandas as pd
-from imblearn.over_sampling import SMOTE
-from sklearn.neighbors import NearestNeighbors
 from PIL import Image
 
 def crop_images(directory, output_directory):
