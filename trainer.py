@@ -104,6 +104,14 @@ def eval_hybrid_multi(modelname):
 
     hybrid_model.evaluate([images_test, X_test], Y_test)
 
+def eval_hybrid_multi_noruler(modelname):
+    hybrid_model = load_model(modelname, custom_objects={'custom_loss': custom_loss, 'custom_loss_imbalance': custom_loss_imbalance})
+
+    X, images, Y = data_prep_multi_noruler()
+    _, X_test, _, images_test, _, Y_test = splits(X, images, Y)
+
+    hybrid_model.evaluate([images_test, X_test], Y_test)
+
 def visualize_attention(modelname):
     X, images, Y = data_prep_multi()
     _, X_test, _, images_test, _, _ = splits(X, images, Y)
