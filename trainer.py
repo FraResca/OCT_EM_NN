@@ -4,7 +4,7 @@ from tensorflow.keras.losses import BinaryCrossentropy, MeanSquaredError
 from tensorflow.keras.models import Model, load_model
 from sklearn.utils import shuffle
 from scipy.ndimage import zoom
-from models import hybnet_multi
+from models import hybnet_multi, hybnet_multi_noruler
 from predata import *
 import matplotlib.pyplot as plt
 import numpy as np
@@ -14,7 +14,9 @@ import sys
 
 def download_vgg16():
     model = VGG16(weights='imagenet', include_top=False, input_shape=(512, 512, 3))
+    model_noruler = VGG16(weights='imagenet', include_top=False, input_shape=(444, 444, 3))
     model.save('vgg16.h5')
+    model_noruler.save('vgg16_noruler.h5')
 
 def custom_loss_imbalance(y_true, y_pred):
     # Flatten the tensor and convert to int
@@ -77,6 +79,22 @@ def train_hybrid_multi_imbalance(n_epochs, aug):
     hybrid_model.fit([images_train, X_train], Y_train, epochs=n_epochs, batch_size=1)
     hybrid_model.save('hybrid_model_imbalance.h5')
 
+def train_hybrid_multi_imbalance_noruler(n_epochs, aug):
+    hybrid_model = hybnet_multi_noruler()
+    hybrid_model.summary()
+
+    X, images, Y = data_prep_multi_noruler()
+    X, images, Y = shuffle(X, images, Y, random_state=42)
+    if aug:
+        X, images, Y = data_aug(X, images, Y)
+
+    X_train, _, images_train, _, Y_train, _ = splits(X, images, Y)
+
+    lr = 0.001
+    hybrid_model.compile(optimizer=Adam(learning_rate=lr), loss=custom_loss_imbalance, metrics=['mean_absolute_error'])
+    hybrid_model.fit([images_train, X_train], Y_train, epochs=n_epochs, batch_size=1)
+    hybrid_model.save('hybrid_model_imbalance_noruler.h5')
+
 
 def eval_hybrid_multi(modelname):
     hybrid_model = load_model(modelname, custom_objects={'custom_loss': custom_loss, 'custom_loss_imbalance': custom_loss_imbalance})
@@ -122,7 +140,44 @@ def visualize_attention(modelname):
         plt.savefig(f'attention_maps/attention_{modelname}_{i}.png')
     
     #plt.show()
-        
+
+def visualize_attention_noruler(modelname):
+    X, images, Y = data_prep_multi_noruler()
+    _, X_test, _, images_test, _, _ = splits(X, images, Y)
+    X, images, Y = data_aug(X, images, Y)
+
+    hybrid_model = load_model(modelname, custom_objects={'custom_loss': custom_loss, 'custom_loss_imbalance': custom_loss_imbalance})
+
+    multiply_layer_index = -1
+    for i, layer in enumerate(hybrid_model.layers):
+        if 'multiply' in layer.name:
+            multiply_layer_index = i
+            break
+
+    attention_model = Model(inputs=hybrid_model.input, outputs=hybrid_model.layers[multiply_layer_index].output)
+
+    attention_map = attention_model.predict([images_test, X_test])
+
+    attention_map -= attention_map.min()
+    attention_map /= attention_map.max()
+
+    attention_map_2d = np.sum(attention_map, axis=-1)
+
+    attention_map_resized = np.array([zoom(img, (images_test[0].shape[0]/img.shape[0], images_test[0].shape[1]/img.shape[1])) for img in attention_map_2d])
+
+    attention_map_resized = attention_map_resized.astype('float32') / attention_map_resized.max()
+
+    num_images = len(images_test)
+
+    for i in range(num_images):
+        fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+        ax[0].imshow(images_test[i], cmap='gray')
+        ax[1].imshow(images_test[i], cmap='gray')
+        ax[1].imshow(attention_map_resized[i], cmap='jet', alpha=0.5)
+        plt.savefig(f'attention_maps/attention_{modelname}_{i}.png')
+    
+    #plt.show()
+
 '''
 if __name__ == '__main__':
     if len(sys.argv) != 4:

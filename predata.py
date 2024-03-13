@@ -9,6 +9,29 @@ import numpy as np
 import pandas as pd
 from imblearn.over_sampling import SMOTE
 from sklearn.neighbors import NearestNeighbors
+from PIL import Image
+
+def crop_images(directory, output_directory):
+    print('Cropping images...')
+    for filename in os.listdir(directory):
+        img = Image.open(os.path.join(directory, filename))
+        width, height = img.size
+        print(f'Original size: {width}x{height}')
+        cropped_img = img.crop((width*0.6, height/6, width, 5*height/6))
+        print(f'Cropped size: {cropped_img.size[0]}x{cropped_img.size[1]}')
+        cropped_img = cropped_img.resize((512, 512))
+        print(f'Resized to: {cropped_img.size[0]}x{cropped_img.size[1]}')
+        cropped_img.save(os.path.join(output_directory, filename))
+        print(f'{filename} cropped')
+
+def remove_ruler(directory, output_directory):
+    for filename in os.listdir(directory):
+        img = Image.open(os.path.join(directory, filename))
+        width, height = img.size
+        cropped_img = img.crop((width/15, height/15, 14*width/15, 14*height/15))
+        print(f'Final size: {cropped_img.size[0]}x{cropped_img.size[1]}')
+        cropped_img.save(os.path.join(output_directory, filename))
+        print(f'{filename} cropped')
 
 
 def corr_mat(X, Y):
@@ -57,6 +80,58 @@ def data_prep_multi():
             image_file = os.path.join(f'OCT_crops/{id}_0.tif')
 
         img = image.load_img(image_file, target_size=(512,512))
+        img_array = image.img_to_array(img)
+        img_array = np.expand_dims(img_array, axis=0)
+        img_array = preprocess_input(img_array)
+
+        images.append(img_array)
+
+    images = np.concatenate(images)
+
+    #print(X_norm)
+    #print(Y_norm)
+
+    return X_norm, images, Y_norm
+
+def data_prep_multi_noruler():
+    df = pd.read_excel('XL.xlsx', engine='openpyxl')
+
+    data = df.to_numpy()
+
+    ids = data[:, 0]  # first column
+
+    X = data[:, 1:-4]  # all columns except first and last 4
+    Y = data[:, -4:]  # last 4 columns
+
+    # print(X)
+    # print(Y)
+
+    labenc = LabelEncoder()
+    X[:, 0] = labenc.fit_transform(X[:, 0])
+
+    ohenc = OneHotEncoder()
+    multiEnc = ohenc.fit_transform(X[:, 2].reshape(-1, 1)).toarray()
+
+    X[:, 10] = X[:, 10] - 1
+
+    X = np.delete(X, 2, axis=1)
+    X = np.concatenate((X, multiEnc), axis=1)
+
+    X = X.astype(float)
+
+    scaler = StandardScaler()
+    X_norm = scaler.fit_transform(X)
+    Y_norm = scaler.fit_transform(Y)
+
+    images = []
+
+    for id in ids:
+        if id < 10:
+            image_file = os.path.join(f'OCT_noruler/0{id}_0.tif')
+        else:
+            image_file = os.path.join(f'OCT_noruler/{id}_0.tif')
+
+        img = image.load_img(image_file, target_size=(444,444))
         img_array = image.img_to_array(img)
         img_array = np.expand_dims(img_array, axis=0)
         img_array = preprocess_input(img_array)
