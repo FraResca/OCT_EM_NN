@@ -1,9 +1,9 @@
 #!/bin/bash
-#SBATCH --job-name=oct_run_imb
+#SBATCH --job-name=oct_run_norul
 #SBATCH --nodes=1
 #SBATCH --time=00:30:00
-#SBATCH --error=oct_run_imb.err
-#SBATCH --output=oct_run_imb.out
+#SBATCH --error=oct_run_norul.err
+#SBATCH --output=oct_run_norul.out
 #SBATCH --partition=shortrun
 #SBATCH --cpus-per-task=4
 #SBATCH --mem-per-cpu=35G
