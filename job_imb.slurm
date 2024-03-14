@@ -15,4 +15,4 @@ module load cuda/11.4
 
 pip install -r requirements.txt
 
-conda run python3 train_imbalance.py
+conda run python3 trainer.py 10 True True False hybrid_model_bal

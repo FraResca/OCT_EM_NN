@@ -15,4 +15,4 @@ module load cuda/11.4
 
 pip install -r requirements.txt
 
-conda run python3 train_balance.py
+conda run python3 trainer.py 10 False True False hybrid_model

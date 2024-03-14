@@ -39,7 +39,12 @@ def corr_mat(X, Y):
     print('\nMatrice di correlazione:')
     print(df.corr())
 
-def data_prep_multi():
+def data_prep_general(noruler):
+    if noruler:
+        dirname = 'OCT_noruler'
+    else:
+        dirname = 'OCT_crops'
+
     df = pd.read_excel('XL.xlsx', engine='openpyxl')
 
     data = df.to_numpy()
@@ -48,9 +53,6 @@ def data_prep_multi():
 
     X = data[:, 1:-4]  # all columns except first and last 4
     Y = data[:, -4:]  # last 4 columns
-
-    # print(X)
-    # print(Y)
 
     labenc = LabelEncoder()
     X[:, 0] = labenc.fit_transform(X[:, 0])
@@ -73,61 +75,9 @@ def data_prep_multi():
 
     for id in ids:
         if id < 10:
-            image_file = os.path.join(f'OCT_crops/0{id}_0.tif')
+            image_file = os.path.join(f'{dirname}/0{id}_0.tif')
         else:
-            image_file = os.path.join(f'OCT_crops/{id}_0.tif')
-
-        img = image.load_img(image_file, target_size=(512,512))
-        img_array = image.img_to_array(img)
-        img_array = np.expand_dims(img_array, axis=0)
-        img_array = preprocess_input(img_array)
-
-        images.append(img_array)
-
-    images = np.concatenate(images)
-
-    #print(X_norm)
-    #print(Y_norm)
-
-    return X_norm, images, Y_norm
-
-def data_prep_multi_noruler():
-    df = pd.read_excel('XL.xlsx', engine='openpyxl')
-
-    data = df.to_numpy()
-
-    ids = data[:, 0]  # first column
-
-    X = data[:, 1:-4]  # all columns except first and last 4
-    Y = data[:, -4:]  # last 4 columns
-
-    # print(X)
-    # print(Y)
-
-    labenc = LabelEncoder()
-    X[:, 0] = labenc.fit_transform(X[:, 0])
-
-    ohenc = OneHotEncoder()
-    multiEnc = ohenc.fit_transform(X[:, 2].reshape(-1, 1)).toarray()
-
-    X[:, 10] = X[:, 10] - 1
-
-    X = np.delete(X, 2, axis=1)
-    X = np.concatenate((X, multiEnc), axis=1)
-
-    X = X.astype(float)
-
-    scaler = StandardScaler()
-    X_norm = scaler.fit_transform(X)
-    Y_norm = scaler.fit_transform(Y)
-
-    images = []
-
-    for id in ids:
-        if id < 10:
-            image_file = os.path.join(f'OCT_noruler/0{id}_0.tif')
-        else:
-            image_file = os.path.join(f'OCT_noruler/{id}_0.tif')
+            image_file = os.path.join(f'{dirname}/{id}_0.tif')
 
         img = image.load_img(image_file, target_size=(444,444))
         img_array = image.img_to_array(img)
@@ -138,10 +88,9 @@ def data_prep_multi_noruler():
 
     images = np.concatenate(images)
 
-    #print(X_norm)
-    #print(Y_norm)
-
     return X_norm, images, Y_norm
+
+
 
 def splits(X_norm, images, Y_norm):
     X_train, X_test, Y_train, Y_test = train_test_split(X_norm, Y_norm, test_size=0.2, random_state=42)
