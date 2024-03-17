@@ -40,10 +40,8 @@ The pre-surgical clinical features from each patient chosen for training are:
 - Diabetes (2 classes)
 
 Along with patient-related features, surgical configuration information was added to the input data:
-- Phaco/Cataract
-- Tamponade
-
-LabelEncoder from Sklearn was used to 
+- Phaco/Cataract (2 classes)
+- Tamponade (2 classes)
 
 The post-surgical features chosen for learning are:
 - Presence of cystoid edema (2 classes)
@@ -51,15 +49,18 @@ The post-surgical features chosen for learning are:
 - Central subfield thickness (Numerical)
 - Central thickness (Numerical)
 
-
-
-
+To preprocess clinical data and targets some key methods from Sklearn were used:
+- LabelEncoder to encode the Sex feature notation of 'M' and 'F' into binary representation.
+- OneHotEncoder to convert the 4-class pucker stage feature into 4 binary features achieving one-hot encoding.
+- StandardScaler to normalize numerical values to have a mean of 0 and a standard deviation of 1.
 
 ## Data augmentation
 
-
+To achieve data augmentation each image was rotated by an angle between -10° and 10°, using keras ImageDataGenerator, effectively doubling the amount of rows in the database. To augment the clinical data every numerical feature in the dataset was injected with noise randomly sampled from a normal distribution having mean and standard deviation following the original features.
 
 ## Multitarget loss
+
+
 
 ## Management of target imbalance
 

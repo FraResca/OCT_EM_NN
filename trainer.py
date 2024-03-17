@@ -18,6 +18,12 @@ def download_vgg16():
     model.save('vgg16.h5')
     model_noruler.save('vgg16_noruler.h5')
 
+def custom_loss(y_true, y_pred):
+    binary_loss = BinaryCrossentropy()(y_true[:,:2], y_pred[:,:2])
+    mse_loss = MeanSquaredError()(y_true[:,2:], y_pred[:,2:])
+
+    return binary_loss + mse_loss
+
 def custom_loss_imbalance(y_true, y_pred):
     y_true_flat = tf.reshape(y_true[:,:2], [-1])
     y_true_int = tf.cast(y_true_flat, tf.int32)
@@ -34,12 +40,6 @@ def custom_loss_imbalance(y_true, y_pred):
     mse_loss = MeanSquaredError()(y_true[:,2:], y_pred[:,2:])
 
     return weighted_binary_loss + mse_loss
-
-def custom_loss(y_true, y_pred):
-    binary_loss = BinaryCrossentropy()(y_true[:,:2], y_pred[:,:2])
-    mse_loss = MeanSquaredError()(y_true[:,2:], y_pred[:,2:])
-
-    return binary_loss + mse_loss
 
 def train_general(n_epochs, balance, aug, noruler, outmodel_name):
     hybrid_model = hybnet_general(noruler)
