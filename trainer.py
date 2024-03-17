@@ -19,24 +19,18 @@ def download_vgg16():
     model_noruler.save('vgg16_noruler.h5')
 
 def custom_loss_imbalance(y_true, y_pred):
-    # Flatten the tensor and convert to int
     y_true_flat = tf.reshape(y_true[:,:2], [-1])
     y_true_int = tf.cast(y_true_flat, tf.int32)
 
-    # Calculate class counts
-    unique, _, class_counts = tf.unique_with_counts(y_true_int)
+    _, _, class_counts = tf.unique_with_counts(y_true_int)
 
-    # Calculate class weights
     max_count = tf.cast(tf.reduce_max(class_counts), tf.float32)
     class_weights = tf.math.divide_no_nan(max_count, tf.cast(class_counts, tf.float32))
 
-    # Calculate binary cross-entropy loss
     binary_loss = BinaryCrossentropy()(y_true[:,:2], y_pred[:,:2])
 
-    # Apply class weights
     weighted_binary_loss = tf.reduce_sum(binary_loss * class_weights)
 
-    # Calculate mean squared error loss
     mse_loss = MeanSquaredError()(y_true[:,2:], y_pred[:,2:])
 
     return weighted_binary_loss + mse_loss
@@ -49,16 +43,16 @@ def custom_loss(y_true, y_pred):
 
 def train_general(n_epochs, balance, aug, noruler, outmodel_name):
     hybrid_model = hybnet_general(noruler)
-    hybrid_model.summary()
+    # hybrid_model.summary()
 
-    X, images, Y = data_prep_general(noruler)
+    X, images, Y = data_prep_general(noruler, False)
     X, images, Y = shuffle(X, images, Y, random_state=42)
     if aug:
         X, images, Y = data_aug(X, images, Y)
     X_train, _, images_train, _, Y_train, _ = splits(X, images, Y)
 
     lr = 0.001
-    if balance:
+    if balance == True:
         hybrid_model.compile(optimizer=Adam(learning_rate=lr), loss=custom_loss_imbalance, metrics=['mean_absolute_error'])
     else:
         hybrid_model.compile(optimizer=Adam(learning_rate=lr), loss=custom_loss, metrics=['mean_absolute_error'])
@@ -67,22 +61,23 @@ def train_general(n_epochs, balance, aug, noruler, outmodel_name):
     hybrid_model.save(f'{outmodel_name}.h5')
 
 def eval_general(modelname, balance, noruler):
-    if balance:
+    if balance == True:
         hybrid_model = load_model(f'{modelname}.h5', custom_objects={'custom_loss_imbalance': custom_loss_imbalance})
     else:
         hybrid_model = load_model(f'{modelname}.h5', custom_objects={'custom_loss': custom_loss})
     
-    X, images, Y = data_prep_general(noruler)
+    X, images, Y = data_prep_general(noruler, False)
+    X, images, Y = data_aug(X, images, Y)
     _, X_test, _, images_test, _, Y_test = splits(X, images, Y)
 
     hybrid_model.evaluate([images_test, X_test], Y_test)
 
 def visualize_attention_general(modelname, noruler, balance):
-    X, images, Y = data_prep_general(noruler)
+    X, images, Y = data_prep_general(noruler, False)
     # X, images, Y = data_aug(X, images, Y)
     _, X_test, _, images_test, _, _ = splits(X, images, Y)
 
-    if balance:
+    if balance == True:
         hybrid_model = load_model(f'{modelname}.h5', custom_objects={'custom_loss_imbalance': custom_loss_imbalance})
     else:
         hybrid_model = load_model(f'{modelname}.h5', custom_objects={'custom_loss': custom_loss})
@@ -120,13 +115,31 @@ if __name__ == "__main__":
         sys.exit("Usage: python trainer.py n_epochs balance aug noruler modelname")
     
     n_epochs = int(sys.argv[1])
-    balance = sys.argv[2]
-    aug = sys.argv[3]
-    noruler = sys.argv[4]
+    if sys.argv[2] == 'True':
+        balance = True
+    else:
+        balance = False
+    
+    if sys.argv[3] == 'True':
+        aug = True
+    else:
+        aug = False
+
+    if sys.argv[4] == 'True':
+        noruler = True
+    else:
+        noruler = False
+
     modelname = sys.argv[5]
 
+    print(f'\nn_epochs: {n_epochs}')
+    print(f'balance: {balance}')
+    print(f'aug: {aug}')
+    print(f'noruler: {noruler}')
+    print(f'modelname: {modelname}\n')
+
     train_general(n_epochs, balance, aug, noruler, modelname)
-    eval_general(modelname, balance, aug)
+    eval_general(modelname, balance, noruler)
     visualize_attention_general(modelname, noruler, balance)
 
 

@@ -11,6 +11,7 @@ from PIL import Image
 
 def crop_images(directory, output_directory):
     print('Cropping images...')
+    
     for filename in os.listdir(directory):
         img = Image.open(os.path.join(directory, filename))
         width, height = img.size
@@ -23,6 +24,8 @@ def crop_images(directory, output_directory):
         print(f'{filename} cropped')
 
 def remove_ruler(directory, output_directory):
+    print('Removing ruler...')
+
     for filename in os.listdir(directory):
         img = Image.open(os.path.join(directory, filename))
         width, height = img.size
@@ -39,20 +42,29 @@ def corr_mat(X, Y):
     print('\nMatrice di correlazione:')
     print(df.corr())
 
-def data_prep_general(noruler):
-    if noruler:
+def data_prep_general(noruler, vis):
+    print(f'Loading data...')
+
+    if noruler == True:
         dirname = 'OCT_noruler'
+        dim = 444
     else:
         dirname = 'OCT_crops'
+        dim = 512
 
-    df = pd.read_excel('XL.xlsx', engine='openpyxl')
+    if vis == True:
+        n_target = 5
+        df = pd.read_excel('XL_vis.xlsx', engine='openpyxl')
+    else:
+        n_target = 4
+        df = pd.read_excel('XL.xlsx', engine='openpyxl')
 
     data = df.to_numpy()
 
     ids = data[:, 0]  # first column
 
-    X = data[:, 1:-4]  # all columns except first and last 4
-    Y = data[:, -4:]  # last 4 columns
+    X = data[:, 1:-n_target]  # all columns except first and last n_target
+    Y = data[:, -n_target:]  # last n_target columns
 
     labenc = LabelEncoder()
     X[:, 0] = labenc.fit_transform(X[:, 0])
@@ -79,7 +91,8 @@ def data_prep_general(noruler):
         else:
             image_file = os.path.join(f'{dirname}/{id}_0.tif')
 
-        img = image.load_img(image_file, target_size=(444,444))
+        img = image.load_img(image_file, target_size=(dim,dim))
+        print(f'Loaded {image_file}')
         img_array = image.img_to_array(img)
         img_array = np.expand_dims(img_array, axis=0)
         img_array = preprocess_input(img_array)
@@ -90,8 +103,6 @@ def data_prep_general(noruler):
 
     return X_norm, images, Y_norm
 
-
-
 def splits(X_norm, images, Y_norm):
     X_train, X_test, Y_train, Y_test = train_test_split(X_norm, Y_norm, test_size=0.2, random_state=42)
     images_train, images_test, _, _ = train_test_split(images, Y_norm, test_size=0.2, random_state=42)
@@ -99,6 +110,7 @@ def splits(X_norm, images, Y_norm):
     return X_train, X_test, images_train, images_test, Y_train, Y_test
 
 def data_aug(X, images, Y):
+
     numerical_cols_X = [1, 5, 6]
     numerical_cols_Y = [2, 3]
     seed=42

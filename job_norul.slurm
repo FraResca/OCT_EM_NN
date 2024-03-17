@@ -15,4 +15,4 @@ module load cuda/11.4
 
 pip install -r requirements.txt
 
-conda run python trainer.py 10 True True True hybrid_model_bal_noruler
+conda run python3 trainer.py 10 True True True hybrid_model_bal_noruler
