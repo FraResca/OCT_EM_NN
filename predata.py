@@ -66,6 +66,9 @@ def data_prep_general(noruler, vis):
     X = data[:, 1:-n_target]  # all columns except first and last n_target
     Y = data[:, -n_target:]  # last n_target columns
 
+    print(X)
+    print(Y)
+
     labenc = LabelEncoder()
     X[:, 0] = labenc.fit_transform(X[:, 0])
 
@@ -82,6 +85,9 @@ def data_prep_general(noruler, vis):
     scaler = StandardScaler()
     X_norm = scaler.fit_transform(X)
     Y_norm = scaler.fit_transform(Y)
+
+    print(X_norm)
+    print(Y_norm)
 
     images = []
 
