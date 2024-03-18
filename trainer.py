@@ -24,25 +24,6 @@ def custom_loss(y_true, y_pred):
 
     return binary_loss + mse_loss
 
-'''
-def custom_loss_imbalance(y_true, y_pred):
-    y_true_flat = tf.reshape(y_true[:,:2], [-1])
-    y_true_int = tf.cast(y_true_flat, tf.int32)
-
-    _, _, class_counts = tf.unique_with_counts(y_true_int)
-
-    max_count = tf.cast(tf.reduce_max(class_counts), tf.float32)
-    class_weights = tf.math.divide_no_nan(max_count, tf.cast(class_counts, tf.float32))
-
-    binary_loss = BinaryCrossentropy()(y_true[:,:2], y_pred[:,:2])
-
-    weighted_binary_loss = tf.reduce_sum(binary_loss * class_weights)
-
-    mse_loss = MeanSquaredError()(y_true[:,2:], y_pred[:,2:])
-
-    return weighted_binary_loss + mse_loss
-'''
-
 def custom_loss_imbalance(y_true, y_pred):
     y_true_flat = tf.reshape(y_true[:,:2], [-1])
     y_true_int = tf.cast(y_true_flat, tf.int32)
@@ -60,7 +41,7 @@ def custom_loss_imbalance(y_true, y_pred):
 
 def train_general(n_epochs, balance, aug, noruler, outmodel_name):
     hybrid_model = hybnet_general(noruler)
-    # hybrid_model.summary()
+    hybrid_model.summary()
 
     X, images, Y = data_prep_general(noruler, False)
     X, images, Y = shuffle(X, images, Y, random_state=42)
@@ -84,14 +65,14 @@ def eval_general(modelname, balance, noruler):
         hybrid_model = load_model(f'{modelname}.h5', custom_objects={'custom_loss': custom_loss})
     
     X, images, Y = data_prep_general(noruler, False)
-    X, images, Y = data_aug(X, images, Y)
+    # X, images, Y = data_aug(X, images, Y)
     _, X_test, _, images_test, _, Y_test = splits(X, images, Y)
 
     hybrid_model.evaluate([images_test, X_test], Y_test)
 
 def visualize_attention_general(modelname, noruler, balance):
     X, images, Y = data_prep_general(noruler, False)
-    X, images, Y = data_aug(X, images, Y)
+    # X, images, Y = data_aug(X, images, Y)
     _, X_test, _, images_test, _, _ = splits(X, images, Y)
 
     if balance == True:
