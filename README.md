@@ -56,13 +56,17 @@ To preprocess clinical data and targets some key methods from Sklearn were used:
 
 ## Data augmentation
 
-To achieve data augmentation each image was rotated by an angle between -10° and 10°, using keras ImageDataGenerator, effectively doubling the amount of rows in the database. To augment the clinical data every numerical feature in the dataset was injected with noise randomly sampled from a normal distribution having mean and standard deviation following the original features.
+To achieve data augmentation each image was rotated by an angle between -10° and 10°, using keras ImageDataGenerator, effectively doubling the amount of rows in the database. To augment the clinical data every numerical feature in the dataset was injected with noise randomly sampled from a normal distribution having mean 0 and standard deviation of 10% from the original features.
 
 ## Multitarget loss
 
-
+The learning target is composed of 2 binary variables and 2 numerical ones. To correctly train the model it is necessary to assign a proper loss function to every output and to sum them to obtain the total loss:
+- BinaryCrossEntropy for binary targets
+- MeanSquaredError for numerical targets
 
 ## Management of target imbalance
+
+The binary classes in the target are strongly imbalanced. To try and compensate a weighted cross-entropy has been assigned, computed from the class counts.
 
 ## Retraining with visus
 

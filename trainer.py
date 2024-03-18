@@ -24,6 +24,7 @@ def custom_loss(y_true, y_pred):
 
     return binary_loss + mse_loss
 
+'''
 def custom_loss_imbalance(y_true, y_pred):
     y_true_flat = tf.reshape(y_true[:,:2], [-1])
     y_true_int = tf.cast(y_true_flat, tf.int32)
@@ -40,6 +41,22 @@ def custom_loss_imbalance(y_true, y_pred):
     mse_loss = MeanSquaredError()(y_true[:,2:], y_pred[:,2:])
 
     return weighted_binary_loss + mse_loss
+'''
+
+def custom_loss_imbalance(y_true, y_pred):
+    y_true_flat = tf.reshape(y_true[:,:2], [-1])
+    y_true_int = tf.cast(y_true_flat, tf.int32)
+
+    _, _, class_counts = tf.unique_with_counts(y_true_int)
+
+    max_count = tf.cast(tf.reduce_max(class_counts), tf.float32)
+    class_weights = tf.math.divide_no_nan(max_count, tf.cast(class_counts, tf.float32))
+
+    binary_loss = tf.nn.weighted_cross_entropy_with_logits(y_true[:,:2], y_pred[:,:2], class_weights)
+
+    mse_loss = MeanSquaredError()(y_true[:,2:], y_pred[:,2:])
+
+    return binary_loss + mse_loss
 
 def train_general(n_epochs, balance, aug, noruler, outmodel_name):
     hybrid_model = hybnet_general(noruler)
@@ -74,7 +91,7 @@ def eval_general(modelname, balance, noruler):
 
 def visualize_attention_general(modelname, noruler, balance):
     X, images, Y = data_prep_general(noruler, False)
-    # X, images, Y = data_aug(X, images, Y)
+    X, images, Y = data_aug(X, images, Y)
     _, X_test, _, images_test, _, _ = splits(X, images, Y)
 
     if balance == True:

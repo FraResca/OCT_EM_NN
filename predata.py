@@ -110,6 +110,7 @@ def splits(X_norm, images, Y_norm):
     return X_train, X_test, images_train, images_test, Y_train, Y_test
 
 def data_aug(X, images, Y):
+    print('Data augmentation...')
 
     numerical_cols_X = [1, 5, 6]
     numerical_cols_Y = [2, 3]
@@ -129,16 +130,16 @@ def data_aug(X, images, Y):
 
     X_aug = X.copy()
     for col in numerical_cols_X:
-        mean = X[:, col].mean()
+        #mean = X[:, col].mean()
         std = X[:, col].std()
-        noise = np.random.normal(mean, std, X[:, col].shape)
+        noise = np.random.normal(0, std * 0.1, X[:, col].shape)
         X_aug[:, col] += noise
 
     Y_aug = Y.copy()
     for col in numerical_cols_Y:
-        mean = Y[:, col].mean()
+        #mean = Y[:, col].mean()
         std = Y[:, col].std()
-        noise = np.random.normal(mean, std, Y[:, col].shape)
+        noise = np.random.normal(0, std * 0.1, Y[:, col].shape)
         Y_aug[:, col] += noise
 
     X_combined = np.concatenate([X, X_aug])
