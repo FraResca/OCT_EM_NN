@@ -45,6 +45,9 @@ def corr_mat(X, Y):
 def data_prep_general(noruler, vis):
     print(f'Loading data...')
 
+    numerical_cols_X = [1, 5, 6]
+    
+
     if noruler == True:
         dirname = 'OCT_noruler'
         dim = 444
@@ -55,9 +58,11 @@ def data_prep_general(noruler, vis):
     if vis == True:
         n_target = 5
         df = pd.read_excel('XL_vis.xlsx', engine='openpyxl')
+        numerical_cols_Y = [2, 3, 4]
     else:
         n_target = 4
         df = pd.read_excel('XL.xlsx', engine='openpyxl')
+        numerical_cols_Y = [2, 3]
 
     data = df.to_numpy()
 
@@ -78,10 +83,18 @@ def data_prep_general(noruler, vis):
     X = np.concatenate((X, multiEnc), axis=1)
 
     X = X.astype(float)
+    Y = Y.astype(float)
 
-    scaler = StandardScaler()
-    X_norm = scaler.fit_transform(X)
-    Y_norm = scaler.fit_transform(Y)
+    X_numerical = X[:, numerical_cols_X]
+    scaler_X = StandardScaler()
+    X_numerical_norm = scaler_X.fit_transform(X_numerical)
+    X[:, numerical_cols_X] = X_numerical_norm
+
+    # Normalize only the numerical columns in Y
+    Y_numerical = Y[:, numerical_cols_Y]
+    scaler_Y = StandardScaler()
+    Y_numerical_norm = scaler_Y.fit_transform(Y_numerical)
+    Y[:, numerical_cols_Y] = Y_numerical_norm
 
     images = []
 
@@ -101,7 +114,7 @@ def data_prep_general(noruler, vis):
 
     images = np.concatenate(images)
 
-    return X_norm, images, Y_norm
+    return X, images, Y
 
 def splits(X_norm, images, Y_norm):
     X_train, X_test, Y_train, Y_test = train_test_split(X_norm, Y_norm, test_size=0.2, random_state=42)

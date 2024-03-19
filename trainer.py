@@ -30,8 +30,10 @@ def custom_loss_imbalance(y_true, y_pred):
 
     _, _, class_counts = tf.unique_with_counts(y_true_int)
 
-    max_count = tf.cast(tf.reduce_max(class_counts), tf.float32)
-    class_weights = tf.math.divide_no_nan(max_count, tf.cast(class_counts, tf.float32))
+    total_count = tf.reduce_sum(class_counts)
+    class_weights = tf.math.divide_no_nan(tf.cast(total_count, tf.float32), tf.cast(class_counts, tf.float32))
+    class_weights = tf.reshape(class_weights, (1, -1))  # reshape class_weights to have shape (1, 2)
+    class_weights = tf.repeat(class_weights, tf.shape(y_true)[0], axis=0)  # repeat it to match the batch size
 
     binary_loss = tf.nn.weighted_cross_entropy_with_logits(y_true[:,:2], y_pred[:,:2], class_weights)
 
@@ -39,6 +41,30 @@ def custom_loss_imbalance(y_true, y_pred):
 
     return binary_loss + mse_loss
 
+def custom_loss_visus(y_true, y_pred):
+    binary_loss = BinaryCrossentropy()(y_true[:,:2], y_pred[:,:2])
+    mse_loss = MeanSquaredError()(y_true[:,3:], y_pred[:,3:])
+
+    return binary_loss + mse_loss
+
+def custom_loss_imbalance_visus(y_true, y_pred):
+    y_true_flat = tf.reshape(y_true[:,:2], [-1])
+    y_true_int = tf.cast(y_true_flat, tf.int32)
+
+    _, _, class_counts = tf.unique_with_counts(y_true_int)
+
+    total_count = tf.reduce_sum(class_counts)
+    class_weights = tf.math.divide_no_nan(tf.cast(total_count, tf.float32), tf.cast(class_counts, tf.float32))
+    class_weights = tf.reshape(class_weights, (1, -1))  # reshape class_weights to have shape (1, 2)
+    class_weights = tf.repeat(class_weights, tf.shape(y_true)[0], axis=0)  # repeat it to match the batch size
+
+    binary_loss = tf.nn.weighted_cross_entropy_with_logits(y_true[:,:2], y_pred[:,:2], class_weights)
+
+    mse_loss = MeanSquaredError()(y_true[:,3:], y_pred[:,3:])
+
+    return binary_loss + mse_loss
+
+    
 def train_general(n_epochs, balance, aug, noruler, outmodel_name):
     hybrid_model = hybnet_general(noruler)
     hybrid_model.summary()
@@ -58,27 +84,28 @@ def train_general(n_epochs, balance, aug, noruler, outmodel_name):
     hybrid_model.fit([images_train, X_train], Y_train, epochs=n_epochs, batch_size=1)
     hybrid_model.save(f'{outmodel_name}.h5')
 
-def eval_general(modelname, balance, noruler):
+def eval_general(modelname, balance, noruler, vis):
     if balance == True:
-        hybrid_model = load_model(f'{modelname}.h5', custom_objects={'custom_loss_imbalance': custom_loss_imbalance})
+        hybrid_model = load_model(f'{modelname}.h5', custom_objects={'custom_loss_imbalance': custom_loss_imbalance, 'custom_loss_imbalance_visus': custom_loss_imbalance_visus})
     else:
-        hybrid_model = load_model(f'{modelname}.h5', custom_objects={'custom_loss': custom_loss})
+        hybrid_model = load_model(f'{modelname}.h5', custom_objects={'custom_loss': custom_loss, 'custom_loss_visus': custom_loss_visus})
     
-    X, images, Y = data_prep_general(noruler, False)
+    X, images, Y = data_prep_general(noruler, vis)
+    X, images, Y = shuffle(X, images, Y, random_state=42)
     # X, images, Y = data_aug(X, images, Y)
     _, X_test, _, images_test, _, Y_test = splits(X, images, Y)
 
     hybrid_model.evaluate([images_test, X_test], Y_test)
 
-def visualize_attention_general(modelname, noruler, balance):
-    X, images, Y = data_prep_general(noruler, False)
+def visualize_attention_general(modelname, noruler, balance, vis):
+    X, images, Y = data_prep_general(noruler, vis)
     # X, images, Y = data_aug(X, images, Y)
     _, X_test, _, images_test, _, _ = splits(X, images, Y)
 
     if balance == True:
-        hybrid_model = load_model(f'{modelname}.h5', custom_objects={'custom_loss_imbalance': custom_loss_imbalance})
+        hybrid_model = load_model(f'{modelname}.h5', custom_objects={'custom_loss_imbalance': custom_loss_imbalance, 'custom_loss_imbalance_visus': custom_loss_imbalance_visus})
     else:
-        hybrid_model = load_model(f'{modelname}.h5', custom_objects={'custom_loss': custom_loss})
+        hybrid_model = load_model(f'{modelname}.h5', custom_objects={'custom_loss': custom_loss, 'custom_loss_visus': custom_loss_visus})
     
     multiply_layer_index = -1
     for i, layer in enumerate(hybrid_model.layers):
@@ -107,6 +134,34 @@ def visualize_attention_general(modelname, noruler, balance):
         ax[1].imshow(images_test[i], cmap='gray')
         ax[1].imshow(attention_map_resized[i], cmap='jet', alpha=0.5)
         plt.savefig(f'attention_maps/attention_{modelname}_{i}.png')
+
+def train_visus(modelname, balance):
+    
+    if balance == True:
+        custom_object = {'custom_loss_imbalance': custom_loss_imbalance}
+    else:
+        custom_object = {'custom_loss': custom_loss}
+
+    model = load_model(f'{modelname}.h5', custom_objects=custom_object)
+
+    X, images, Y = data_prep_general(noruler, True)
+    X, images, Y = shuffle(X, images, Y, random_state=42)    
+    X_train, _, images_train, _, Y_train, _ = splits(X, images, Y)
+
+    x = model.layers[-2].output
+
+    output = Dense(5, name='output')(x)
+
+    new_model = Model(inputs=model.input, outputs=output)
+
+    if balance == True:
+        new_model.compile(optimizer='adam', loss=custom_loss_imbalance_visus, metrics=['MeanAbsoluteError'])
+    else:
+        new_model.compile(optimizer='adam', loss=custom_loss_visus, metrics=['MeanAbsoluteError'])
+
+    new_model.fit([images_train, X_train], Y_train, epochs=n_epochs, batch_size=1)
+
+    new_model.save(f'{modelname}_visus.h5')
 
 if __name__ == "__main__":
     if len(sys.argv) != 6:
@@ -137,9 +192,11 @@ if __name__ == "__main__":
     print(f'modelname: {modelname}\n')
 
     train_general(n_epochs, balance, aug, noruler, modelname)
-    eval_general(modelname, balance, noruler)
-    visualize_attention_general(modelname, noruler, balance)
-
+    eval_general(modelname, balance, noruler, False)
+    visualize_attention_general(modelname, noruler, balance, False)
+    train_visus(modelname, balance)
+    eval_general(f'{modelname}_visus', balance, noruler, True)
+    visualize_attention_general(f'{modelname}_visus', noruler, balance, True)
 
 # Addestramento senza bilanciamento
 # python trainer.py 10 False True False hybrid_model
